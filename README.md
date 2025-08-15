@@ -33,21 +33,62 @@ This application is a full-stack web application that enables users to query cou
    ANTHROPIC_API_KEY=your_anthropic_api_key_here
    ```
 
-## Running the Application
+## Development Workflow
 
-### Quick Start
+### Code Quality Tools
 
-Use the provided shell script:
+This project includes comprehensive code quality tools:
+- **Black**: Automatic code formatting
+- **isort**: Import sorting
+- **flake8**: Code linting
+- **mypy**: Type checking
+
+### Running the Application
+
+#### With Quality Checks (Recommended)
+```bash
+chmod +x scripts/*.sh
+./scripts/dev.sh
+```
+This runs formatting, linting, and type checking before starting the server.
+
+#### Quick Start (Standard)
 ```bash
 chmod +x run.sh
 ./run.sh
 ```
 
-### Manual Start
-
+#### Manual Start
 ```bash
 cd backend
 uv run uvicorn app:app --reload --port 8000
+```
+
+### Code Quality Commands
+
+#### Format Code
+```bash
+./scripts/format.sh
+```
+
+#### Run Quality Checks
+```bash
+./scripts/lint.sh
+```
+
+#### Manual Commands
+```bash
+# Format with black
+uv run black backend/
+
+# Sort imports
+uv run isort backend/
+
+# Lint with flake8
+uv run flake8 backend/
+
+# Type checking
+uv run mypy backend/
 ```
 
 The application will be available at:
