@@ -227,9 +227,13 @@ header h1 {
 
 .sources-collapsible summary {
     cursor: pointer;
-    padding: 0.25rem 0.5rem;
+    padding: 0.5rem 0.75rem;
     user-select: none;
-    font-weight: 500;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(59, 130, 246, 0.05);
+    border-radius: 8px;
+    transition: all 0.2s ease;
 }
 
 .sources-collapsible summary:hover {
@@ -241,8 +245,40 @@ header h1 {
 }
 
 .sources-content {
-    padding: 0 0.5rem 0.25rem 1.5rem;
+    padding: 0.5rem 0.75rem;
     color: var(--text-secondary);
+    line-height: 1.6;
+    background: var(--surface);
+    border-radius: 6px;
+    margin-top: 0.5rem;
+    border-left: 3px solid var(--accent);
+}
+
+/* Source links styling */
+.source-link {
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(59, 130, 246, 0.1);
+    transition: all 0.2s ease;
+    font-weight: 500;
+    display: inline-block;
+    margin: 2px 4px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.source-link:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--accent);
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.source-link:active {
+    transform: translateY(0);
 }
 
 /* Markdown formatting styles */
@@ -460,6 +496,39 @@ header h1 {
     transition: color 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* New Chat Button */
+.new-chat-button {
+    width: 100%;
+    padding: 0.5rem 0;
+    background: none;
+    color: var(--text-secondary);
+    border: none;
+    border-radius: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.new-chat-button:hover {
+    background: none;
+    color: var(--primary-color);
+    transform: none;
+    box-shadow: none;
+}
+
+.new-chat-button:active {
+    transform: none;
+}
+
+.new-chat-button:focus {
+    outline: none;
+    color: var(--primary-color);
 }
 
 .stats-header:focus,

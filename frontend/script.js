@@ -29,6 +29,8 @@ function setupEventListeners() {
         if (e.key === 'Enter') sendMessage();
     });
     
+    // New chat button
+    document.getElementById('newChatButton').addEventListener('click', createNewChat);
     
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
@@ -122,10 +124,20 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     let html = `<div class="message-content">${displayContent}</div>`;
     
     if (sources && sources.length > 0) {
+        console.log('Sources received:', sources); // Debug info
+        
+        const formattedSources = sources.map(source => {
+            if (typeof source === 'object' && source !== null && source.link) {
+                return `<a href="${source.link}" target="_blank" rel="noopener noreferrer" class="source-link">${source.text}</a>`;
+            } else {
+                return typeof source === 'string' ? source : (source.text || String(source));
+            }
+        }).join(', ');
+        
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sources.join(', ')}</div>
+                <div class="sources-content">${formattedSources}</div>
             </details>
         `;
     }
@@ -150,6 +162,15 @@ async function createNewSession() {
     currentSessionId = null;
     chatMessages.innerHTML = '';
     addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
+}
+
+// New Chat Function
+async function createNewChat() {
+    // Clear current session and start fresh
+    await createNewSession();
+    
+    // Focus input for immediate use
+    chatInput.focus();
 }
 
 // Load course statistics
