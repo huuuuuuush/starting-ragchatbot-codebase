@@ -16,27 +16,6 @@ dependencies = [
     "httpx>=0.28.1",
 ]
 
-[tool.pytest.ini_options]
-testpaths = ["backend/tests"]
-python_files = ["test_*.py", "*_test.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = [
-    "-v",
-    "--tb=short",
-    "--strict-markers",
-    "--disable-warnings",
-]
-markers = [
-    "unit: Unit tests",
-    "integration: Integration tests",
-    "api: API endpoint tests",
-    "slow: Slow running tests",
-]
-filterwarnings = [
-    "ignore::ResourceWarning",
-    "ignore::DeprecationWarning",
-]
 
 [dependency-groups]
 dev = [
@@ -98,6 +77,10 @@ markers = [
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
     "api: marks tests as API tests",
+]
+filterwarnings = [
+    "ignore::ResourceWarning",
+    "ignore::DeprecationWarning",
 ]
 
 [tool.mypy]
