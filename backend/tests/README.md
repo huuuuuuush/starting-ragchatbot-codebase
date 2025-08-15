@@ -73,12 +73,14 @@ uv run pytest backend/tests/ --cov=backend --cov-report=html
 
 `conftest.py` 提供了以下共享夹具：
 
+- `test_config` - 测试配置与临时目录
 - `test_client` - FastAPI测试客户端
 - `mock_rag_system` - 模拟的RAG系统
 - `mock_vector_store` - 模拟的向量存储
 - `mock_ai_generator` - 模拟的AI生成器
-- `sample_course` - 示例课程数据
-- `sample_course_chunks` - 示例课程分块数据
+- `mock_session_manager` - 模拟的会话管理器
+- `mock_course` - 示例课程数据
+- `mock_course_chunks` - 示例课程分块数据
 - `sample_query_data` - 示例查询数据
 
 ## 测试配置
@@ -95,7 +97,7 @@ uv run pytest backend/tests/ --cov=backend --cov-report=html
 确保已安装测试依赖：
 
 ```bash
-uv sync --extra dev
+uv sync --group dev
 ```
 
 ## 添加新测试
@@ -113,3 +115,23 @@ uv sync --extra dev
 - 为每个测试类添加清晰的文档字符串
 - 测试正向和负向场景
 - 验证错误处理行为
+
+## 英文版本参考
+
+For English documentation, see the inline comments in test files and the following summary:
+
+### Test Categories
+- **Unit Tests**: Data model validation, serialization/deserialization
+- **API Tests**: Endpoint functionality, request/response validation
+- **Integration Tests**: Full query flow, session management
+
+### Running Tests
+```bash
+# All tests
+PYTHONPATH=. uv run python -m pytest backend/tests/ -v
+
+# Specific files
+PYTHONPATH=. uv run python -m pytest backend/tests/test_models.py -v
+```
+
+Tests run in isolated environments using temporary directories to avoid production data interference.

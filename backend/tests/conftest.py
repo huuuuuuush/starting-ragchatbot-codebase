@@ -3,12 +3,16 @@ Test configuration and shared fixtures for RAG system tests.
 """
 
 import os
+import sys
 import tempfile
 import shutil
 from pathlib import Path
 from typing import Dict, Any, List
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import Mock, MagicMock, AsyncMock
+
+# Add backend directory to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from fastapi.testclient import TestClient
 from sentence_transformers import SentenceTransformer
@@ -20,6 +24,7 @@ from backend.vector_store import VectorStore
 from backend.ai_generator import AIGenerator
 from backend.document_processor import DocumentProcessor
 from backend.session_manager import SessionManager
+from backend.config import Config
 
 
 @pytest.fixture(scope="session")
@@ -34,6 +39,18 @@ def test_data_dir():
 def chroma_db_path(test_data_dir):
     """Create a temporary ChromaDB path."""
     return os.path.join(test_data_dir, "test_chroma_db")
+
+
+@pytest.fixture
+def test_config():
+    """Create test configuration with temporary directories."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        config = Config()
+        config.chroma_db_path = os.path.join(temp_dir, "test_chroma_db")
+        config.chunk_size = 100
+        config.chunk_overlap = 20
+        config.max_results = 3
+        yield config
 
 
 @pytest.fixture(scope="session")
@@ -79,6 +96,28 @@ def sample_course():
 
 
 @pytest.fixture
+def mock_course():
+    """Create a mock course for testing."""
+    return Course(
+        title="Test Course",
+        instructor="Test Instructor",
+        course_link="https://example.com/test-course",
+        lessons=[
+            Lesson(
+                lesson_number=1,
+                title="Introduction",
+                lesson_link="https://example.com/test-course/lesson1"
+            ),
+            Lesson(
+                lesson_number=2,
+                title="Advanced Topics",
+                lesson_link="https://example.com/test-course/lesson2"
+            )
+        ]
+    )
+
+
+@pytest.fixture
 def sample_course_chunks(sample_course):
     """Create sample course chunks for testing."""
     course = sample_course
@@ -107,12 +146,39 @@ def sample_course_chunks(sample_course):
 
 
 @pytest.fixture
+def mock_course_chunks():
+    """Create mock course chunks for testing."""
+    return [
+        CourseChunk(
+            content="This is the first chunk of test content for lesson 1.",
+            course_title="Test Course",
+            lesson_number=1,
+            chunk_index=0
+        ),
+        CourseChunk(
+            content="This is the second chunk of test content for lesson 1.",
+            course_title="Test Course",
+            lesson_number=1,
+            chunk_index=1
+        ),
+        CourseChunk(
+            content="This is content for lesson 2 about advanced topics.",
+            course_title="Test Course",
+            lesson_number=2,
+            chunk_index=0
+        )
+    ]
+
+
+@pytest.fixture
 def mock_ai_generator():
     """Create a mock AI generator for testing."""
-    mock = MagicMock(spec=AIGenerator)
+    mock_ai = Mock()
+    mock_ai.generate_response = AsyncMock(return_value="This is a generated test response")
     
-    # Mock generate_response method
-    mock.generate_response = AsyncMock(return_value={
+    # Also create a MagicMock version for more detailed testing
+    detailed_mock = MagicMock(spec=AIGenerator)
+    detailed_mock.generate_response = AsyncMock(return_value={
         "response": "This is a mock AI response for testing purposes.",
         "sources": [
             {
@@ -124,7 +190,7 @@ def mock_ai_generator():
         ]
     })
     
-    return mock
+    return detailed_mock
 
 
 @pytest.fixture
@@ -162,6 +228,19 @@ def mock_vector_store():
         "total_chunks": 350
     })
     
+    # Also add newer mock methods
+    mock_store.search_course_metadata = AsyncMock(return_value=[
+        {"title": "Test Course 1", "score": 0.95},
+        {"title": "Test Course 2", "score": 0.87}
+    ])
+    
+    mock_store.search_course_content = AsyncMock(return_value=[
+        {"content": "Test content", "metadata": {"course_title": "Test Course", "lesson_number": 1}, "score": 0.92}
+    ])
+    
+    mock_store.add_course_metadata = AsyncMock(return_value=None)
+    mock_store.add_course_chunks = AsyncMock(return_value=None)
+    
     return mock_store
 
 
@@ -189,7 +268,45 @@ def mock_session_manager():
     })
     mock.update_session = MagicMock()
     
+    # Also add newer mock methods
+    mock.create_session = AsyncMock(return_value="test-session-123")
+    mock.get_session = AsyncMock(return_value={"messages": []})
+    mock.add_message = AsyncMock(return_value=None)
+    
     return mock
+
+
+@pytest.fixture
+def mock_rag_system():
+    """Create a mock RAG system for testing."""
+    mock_rag = Mock()
+    
+    mock_rag.query.return_value = (
+        "This is a test answer",
+        [
+            {
+                "content": "Test content 1",
+                "course_title": "Test Course",
+                "lesson_number": 1,
+                "chunk_index": 0
+            },
+            {
+                "content": "Test content 2",
+                "course_title": "Test Course",
+                "lesson_number": 2,
+                "chunk_index": 0
+            }
+        ]
+    )
+    
+    mock_rag.get_course_analytics.return_value = {
+        "total_courses": 2,
+        "course_titles": ["Test Course 1", "Test Course 2"]
+    }
+    
+    mock_rag.add_course_folder.return_value = (1, 5)
+    
+    return mock_rag
 
 
 @pytest.fixture
@@ -201,13 +318,6 @@ def test_rag_system(mock_vector_store, mock_ai_generator, mock_session_manager):
         session_manager=mock_session_manager
     )
     return rag_system
-
-
-@pytest.fixture
-def test_client():
-    """Create a test client for the FastAPI app."""
-    from backend.tests.test_app import test_app
-    return TestClient(test_app)
 
 
 @pytest.fixture
@@ -226,3 +336,43 @@ def sample_query_with_session():
         "query": "Tell me more about Python lists",
         "session_id": "test-session-123"
     }
+
+
+@pytest.fixture
+def sample_course_stats():
+    """Create sample course statistics for testing."""
+    return {
+        "total_courses": 3,
+        "course_titles": [
+            "Introduction to Machine Learning",
+            "Advanced Deep Learning",
+            "Data Science Fundamentals"
+        ]
+    }
+
+
+@pytest.fixture
+def temp_course_folder():
+    """Create a temporary folder with sample course documents."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create sample documents
+        doc1_path = os.path.join(temp_dir, "course1.txt")
+        with open(doc1_path, "w") as f:
+            f.write("Machine Learning Course\nThis course covers the fundamentals of machine learning.")
+        
+        doc2_path = os.path.join(temp_dir, "course2.txt")
+        with open(doc2_path, "w") as f:
+            f.write("Deep Learning Course\nThis course explores advanced neural networks.")
+        
+        yield temp_dir
+
+
+@pytest.fixture
+def test_client():
+    """Create a test client for FastAPI app testing."""
+    # Import here to avoid circular imports
+    from .test_app import create_test_app
+    
+    app = create_test_app()
+    client = TestClient(app)
+    return client
